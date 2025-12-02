@@ -3,7 +3,7 @@ from telebot import types
 from dotenv import load_dotenv
 import os
 
-# 👉 ВСТАВЬ СЮДА ТОКЕН СВОЕГО БОТА
+# 👉 ВСТАВЬ СЮДА ТОКЕН СВОЕГО БОТ
 load_dotenv()  # загружаем .env
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 

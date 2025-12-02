@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tests Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Telegram WebApp API -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div class="app">
+    <div class="card">
+      <header class="card-header">
+        <h1 class="title">Какой у тебя социальный вайб в 2025?</h1>
+        <p class="subtitle">Ответь на несколько вопросов и узнай свой тип.</p>
+        <div class="progress">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+      </header>
+
+      <main class="card-body">
+        <div id="question-text" class="question"></div>
+        <div id="options" class="options"></div>
+      </main>
+
+      <footer class="card-footer">
+        <button id="next-btn" class="btn btn-secondary" disabled>
+          Далее
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
