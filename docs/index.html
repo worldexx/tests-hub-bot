@@ -2,31 +2,25 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>tests-hub</title>
+  <title>tests hub bot</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="stylesheet" href="dashboard.css" />
 </head>
 <body>
   <div class="page">
-    <header class="header">
-      <div class="username-block">
-        <div id="username" class="username">worldexx</div>
-        <div class="user-tag">.user</div>
-      </div>
-      <div id="accountType" class="account-type">basic account</div>
+
+    <header class="simple-header">
+      <h1 class="main-title">tests hub bot</h1>
     </header>
 
     <main class="content">
       <h2 class="section-title">tests</h2>
-      <p class="section-subtitle">
-        выбери тест, свайпай ответы и делись результатом
-      </p>
+      <p class="section-subtitle">выбери тест и пройди его</p>
 
-      <div id="testsGrid" class="tests-grid">
-        <!-- карточки тестов -->
-      </div>
+      <div id="testsGrid" class="tests-grid"></div>
     </main>
+
   </div>
 
   <script src="dashboard.js"></script>
