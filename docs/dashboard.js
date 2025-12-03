@@ -1,9 +1,42 @@
+// ---- TELEGRAM WEBAPP И АНТИ-СВАЙП ДЛЯ ДАШБОРДА ----
+
 const tg = window.Telegram?.WebApp;
 
+function isMobile() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+}
+
 try {
-  tg?.ready();
-  tg?.expand();
-} catch (e) {}
+  if (tg) {
+    tg.ready();
+    tg.expand();
+    if (tg.setClosingBehavior) {
+      tg.setClosingBehavior("none");
+    }
+
+    // Блокируем скролл (чтобы не смахнуть мини-апп)
+    document.addEventListener(
+      "touchmove",
+      (e) => e.preventDefault(),
+      { passive: false }
+    );
+
+    // Блокируем кнопку "назад"
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", () => {
+      window.history.pushState(null, "", window.location.href);
+    });
+
+    if (isMobile() && tg.requestFullscreen) {
+      setTimeout(() => tg.requestFullscreen(), 500);
+    }
+  }
+} catch (e) {
+  console.warn("Telegram WebApp init error (dashboard)", e);
+}
+
 
 // подставляем ник из Telegram, если есть
 (function setUserInfo() {
