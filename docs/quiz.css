@@ -1,36 +1,316 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
-  background: #fafafa;
-  font-family: system-ui, sans-serif;
   margin: 0;
-  padding: 20px;
+  padding: 0;
+  font-family: system-ui, -apple-system, "SF Pro Text", "Segoe UI", sans-serif;
+  background: #f3f2f6;
+  color: #111827;
 }
 
 .quiz-container {
-  max-width: 420px;
+  max-width: 480px;
   margin: 0 auto;
+  min-height: 100vh;
+  padding: 16px;
 }
 
-.quiz-title {
-  font-size: 24px;
+.quiz-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.quiz-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
   margin-bottom: 20px;
 }
 
-.q-text {
-  font-size: 18px;
-  margin-bottom: 16px;
+.back-btn {
+  border: none;
+  background: #e5e7eb;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
 }
 
-.q-opts {
+.quiz-title-block {
+  flex: 1;
+}
+
+.quiz-title-main {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.quiz-progress-text {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.quiz-progress-bar {
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.quiz-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #38bdf8, #a855f7);
+  transition: width 0.15s ease-out;
+}
+
+.quiz-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 16px;
+}
+
+/* Направления вокруг карточки */
+
+.quiz-directions {
+  position: relative;
+  height: 80px;
+  margin-bottom: 12px;
+}
+
+.dir {
+  position: absolute;
+  font-size: 11px;
+  color: #9ca3af;
+  max-width: 45%;
+  opacity: 0;
+  transition: opacity 0.15s ease-out;
+  text-align: center;
+}
+
+.dir.visible {
+  opacity: 1;
+}
+
+.dir-up {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.dir-down {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.dir-left {
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  text-align: left;
+}
+
+.dir-right {
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  text-align: right;
+}
+
+/* Карточка вопроса */
+
+.card-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.question-card {
+  width: 100%;
+  max-width: 360px;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 18px 16px 16px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
   display: flex;
   flex-direction: column;
   gap: 10px;
+  cursor: grab;
 }
 
-.q-btn {
-  padding: 12px;
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #ddd;
-  cursor: pointer;
+.q-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  letter-spacing: 0.08em;
+}
+
+.q-text {
+  font-size: 16px;
+}
+
+.hint {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* Анимации свайпов */
+
+.question-card.fly-left {
+  animation: flyLeft 0.18s ease-out forwards;
+}
+
+.question-card.fly-right {
+  animation: flyRight 0.18s ease-out forwards;
+}
+
+.question-card.fly-up {
+  animation: flyUp 0.18s ease-out forwards;
+}
+
+.question-card.fly-down {
+  animation: flyDown 0.18s ease-out forwards;
+}
+
+@keyframes flyLeft {
+  to {
+    transform: translateX(-120%) rotate(-4deg);
+    opacity: 0;
+  }
+}
+
+@keyframes flyRight {
+  to {
+    transform: translateX(120%) rotate(4deg);
+    opacity: 0;
+  }
+}
+
+@keyframes flyUp {
+  to {
+    transform: translateY(-120%) rotate(-2deg);
+    opacity: 0;
+  }
+}
+
+@keyframes flyDown {
+  to {
+    transform: translateY(120%) rotate(2deg);
+    opacity: 0;
+  }
+}
+
+/* shake, если свайп слишком короткий или не в ту сторону */
+
+.question-card.shake {
+  animation: shakeCard 0.18s ease-out;
+}
+
+@keyframes shakeCard {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px);
+  }
+  50% {
+    transform: translateX(6px);
+  }
+  75% {
+    transform: translateX(-4px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* Экран результата */
+
+.result-shell {
+  min-height: 100vh;
+}
+
+.result-main {
+  justify-content: flex-start;
+  margin-top: 24px;
+}
+
+.result-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 20px 16px 18px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+}
+
+.result-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.result-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.result-score {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.result-desc {
   font-size: 14px;
+  color: #4b5563;
+  margin-bottom: 16px;
+}
+
+.result-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.primary-btn,
+.ghost-btn {
+  border-radius: 999px;
+  border: none;
+  padding: 10px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.primary-btn {
+  background: #111827;
+  color: #f9fafb;
+}
+
+.ghost-btn {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+/* Вписывание под мобильный экран */
+
+@media (max-width: 420px) {
+  .quiz-container {
+    padding: 12px;
+  }
+
+  .question-card {
+    max-width: 340px;
+  }
 }
