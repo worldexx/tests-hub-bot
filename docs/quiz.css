@@ -330,10 +330,14 @@ body {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
-  padding: calc(40px + env(safe-area-inset-top, 0px)) 16px 20px;
+
+  /* стало больше, чтобы уйти ниже системной шапки + шапки Telegram */
+  padding: calc(110px + env(safe-area-inset-top, 0px)) 16px 20px;
+
   display: flex;
   flex-direction: column;
 }
+
 
 /* шапку делаем компактной, чтобы она не казалась огромной */
 .quiz-header {
@@ -355,18 +359,22 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;  /* вопрос + карточка примерно посередине */
-  gap: 18px;
+
+  /* вместо center делаем старт + нормальный зазор */
+  justify-content: flex-start;
+  gap: 28px;
 }
+
 
 /* текст вопроса по центру, в хорошей области */
 .quiz-question-text {
   max-width: 380px;
-  text-align: left;
-  font-size: 18px;
+  text-align: center;
+  font-size: 19px;
   line-height: 1.3;
   margin: 0 auto;
 }
+
 
 /* обёртка для направлений + карточки */
 .quiz-layout {
@@ -374,13 +382,14 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 22px;   /* было меньше, теперь больше воздуха */
 }
+
 
 /* направления располагаем ближе к карточке */
 .quiz-directions {
   position: relative;
-  height: 90px;
+  height: 110px;    /* немного выше */
   width: 100%;
 }
 
@@ -388,25 +397,27 @@ body {
 .card-wrapper {
   display: flex;
   justify-content: center;
-  margin-top: 4px;
+  margin-top: 8px;   /* небольшой отступ сверху */
 }
 
 .question-card {
   width: 100%;
-  max-width: 380px;
-  min-height: 120px;
+  max-width: 400px;      /* было ~380, стало больше */
+  min-height: 170px;     /* стало на ~30% выше */
   background: #ffffff;
   border-radius: 26px;
-  padding: 16px 18px 14px;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+  padding: 18px 20px 16px;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.20);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
 /* подсказки вокруг — немного крупнее, чтобы читать проще */
-.dir {
-  font-size: 14px;
+.quiz-directions {
+  position: relative;
+  height: 110px;    /* немного выше */
+  width: 100%;
 }
 
 /* адаптив: на маленьких экранах уменьшить горизонтальные отступы */
@@ -414,13 +425,16 @@ body {
   .quiz-shell {
     padding-left: 12px;
     padding-right: 12px;
+    padding-top: calc(100px + env(safe-area-inset-top, 0px));
   }
 
   .quiz-question-text {
-    font-size: 17px;
+    font-size: 18px;
   }
 
   .question-card {
     max-width: 360px;
+    min-height: 160px;
   }
 }
+
