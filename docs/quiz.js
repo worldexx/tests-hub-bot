@@ -16,20 +16,19 @@ try {
       tg.setClosingBehavior("none");
     }
 
-    // Блокируем скролл (чтобы не смахнуть случайно)
+    // Блокируем скролл
     document.addEventListener(
       "touchmove",
       (e) => e.preventDefault(),
       { passive: false }
     );
 
-    // Блокируем кнопку "назад"
+    // Блокируем "назад"
     window.history.pushState(null, "", window.location.href);
     window.addEventListener("popstate", () => {
       window.history.pushState(null, "", window.location.href);
     });
 
-    // На мобилках пробуем fullscreen
     if (isMobile() && tg.requestFullscreen) {
       setTimeout(() => tg.requestFullscreen(), 500);
     }
@@ -38,7 +37,7 @@ try {
   console.warn("Telegram WebApp init error", e);
 }
 
-// ---- ЗАГРУЗКА ТЕСТА ПО ID ----
+// ---- ЗАГРУЗКА ТЕСТА ----
 
 const params = new URLSearchParams(location.search);
 const testId = params.get("test");
@@ -90,21 +89,19 @@ function renderQuiz(quiz) {
 
         <div class="card-wrapper">
           <div class="question-card" id="questionCard">
-            <div class="q-label">вопрос</div>
+            <div class="q-label">ВОПРОС</div>
             <div class="q-text" id="qText"></div>
-            <div class="hint">свайпай в сторону ответа</div>
+            <div class="hint">свайпай карточку в сторону ответа</div>
           </div>
         </div>
       </main>
     </div>
   `;
 
-  const backBtn = document.getElementById("backBtn");
-  backBtn.addEventListener("click", () => {
-    // Возврат на index / дашборд
+  document.getElementById("backBtn").onclick = () => {
     const base = location.pathname.replace(/quiz\.html?$/, "");
     location.href = base;
-  });
+  };
 
   let index = 0;
   let score = 0;
@@ -112,16 +109,14 @@ function renderQuiz(quiz) {
   function updateProgress() {
     const total = quiz.questions.length;
     const current = Math.min(index + 1, total);
-    const percent = Math.round((current - 1) / total * 100);
-    const textEl = document.getElementById("progressText");
-    const fillEl = document.getElementById("progressFill");
-
-    textEl.textContent = `Вопрос ${current}/${total} · ${percent}%`;
-    fillEl.style.width = `${percent}%`;
+    const percent = Math.round(((current - 1) / total) * 100);
+    document.getElementById(
+      "progressText"
+    ).textContent = `Вопрос ${current}/${total} · ${percent}%`;
+    document.getElementById("progressFill").style.width = `${percent}%`;
   }
 
   function mapDirections(options) {
-    // Возвращает объект {left, right, up, down} = option или null
     const dirs = { left: null, right: null, up: null, down: null };
 
     if (options.length === 1) {
@@ -134,7 +129,6 @@ function renderQuiz(quiz) {
       dirs.right = options[1];
       dirs.down = options[2];
     } else {
-      // 4 и больше — берем первые 4
       dirs.left = options[0];
       dirs.right = options[1];
       dirs.up = options[2];
@@ -146,9 +140,7 @@ function renderQuiz(quiz) {
 
   function renderQuestion() {
     const question = quiz.questions[index];
-    if (!question) {
-      return renderResult();
-    }
+    if (!question) return renderResult();
 
     updateProgress();
 
@@ -162,7 +154,6 @@ function renderQuiz(quiz) {
 
     const dirs = mapDirections(question.options);
 
-    // подписываем подсказки по сторонам
     dirUpEl.textContent = dirs.up ? dirs.up.text : "";
     dirLeftEl.textContent = dirs.left ? dirs.left.text : "";
     dirRightEl.textContent = dirs.right ? dirs.right.text : "";
@@ -171,11 +162,12 @@ function renderQuiz(quiz) {
     [dirUpEl, dirLeftEl, dirRightEl, dirDownEl].forEach((el) => {
       if (el.textContent) el.classList.add("visible");
       else el.classList.remove("visible");
+      el.classList.remove("active");
     });
 
-    // навешиваем свайпы
-    setupSwipe(dirs, (chosenOption) => {
-      score += Number(chosenOption.score || 0);
+    const card = document.getElementById("questionCard");
+    setupSwipe(card, dirs, (chosen) => {
+      score += Number(chosen.score || 0);
       index += 1;
       renderQuestion();
     });
@@ -183,14 +175,14 @@ function renderQuiz(quiz) {
 
   function renderResult() {
     const totalMax = quiz.questions.length * 3;
-    const result = quiz.results.find(
-      (r) => score >= r.range[0] && score <= r.range[1]
-    ) || {
-      title: "Неопознанный вайб",
-      description: "Ты вне шкалы, отдельная экспериментальная сущность."
-    };
+    const result =
+      quiz.results.find(
+        (r) => score >= r.range[0] && score <= r.range[1]
+      ) || {
+        title: "Неопознанный вайб",
+        description: "Ты вне шкалы, отдельная экспериментальная сущность."
+      };
 
-    const root = document.getElementById("quiz-root");
     root.innerHTML = `
       <div class="quiz-shell result-shell">
         <header class="quiz-header">
@@ -216,106 +208,142 @@ function renderQuiz(quiz) {
       </div>
     `;
 
-    document.getElementById("backBtn2").onclick = () => {
-      const base = location.pathname.replace(/quiz\.html?$/, "");
-      location.href = base;
-    };
-    document.getElementById("backToTests").onclick = () => {
-      const base = location.pathname.replace(/quiz\.html?$/, "");
-      location.href = base;
-    };
-    document.getElementById("retryBtn").onclick = () => {
-      // Перезапускаем тест
-      index = 0;
-      score = 0;
-      renderQuiz(quiz);
-    };
+    document.getElementById("backBtn2").onclick =
+      document.getElementById("backToTests").onclick =
+        () => {
+          const base = location.pathname.replace(/quiz\.html?$/, "");
+          location.href = base;
+        };
+    document.getElementById("retryBtn").onclick = () => renderQuiz(quiz);
   }
 
   renderQuestion();
 }
 
-// ---- ЛОГИКА СВАЙПОВ ----
+// ---- ТИНДЕР-СТАЙЛ СВАЙП ----
 
-let swipeHandlerAttached = false;
-
-function setupSwipe(directionsMap, onChosen) {
-  const card = document.getElementById("questionCard");
-  if (!card) return;
-
-  // Чтобы не навешивать миллион раз — сначала снимаем старые
-  if (swipeHandlerAttached) {
-    card.replaceWith(card.cloneNode(true));
-  }
-  const newCard = document.getElementById("questionCard");
-  swipeHandlerAttached = true;
-
+function setupSwipe(card, directionsMap, onChosen) {
   let startX = 0;
   let startY = 0;
-  let isTouch = false;
+  let currentX = 0;
+  let currentY = 0;
+  let dragging = false;
 
-  function onStart(e) {
-    isTouch = true;
+  const dirEls = {
+    left: document.getElementById("dirLeft"),
+    right: document.getElementById("dirRight"),
+    up: document.getElementById("dirUp"),
+    down: document.getElementById("dirDown")
+  };
+
+  function resetCard() {
+    card.style.transform = "";
+    card.classList.remove(
+      "fly-left",
+      "fly-right",
+      "fly-up",
+      "fly-down",
+      "snap-back"
+    );
+  }
+
+  function highlightDirection(dir) {
+    Object.entries(dirEls).forEach(([name, el]) => {
+      if (!el) return;
+      if (name === dir) el.classList.add("active");
+      else el.classList.remove("active");
+    });
+  }
+
+  function getDirection(dx, dy) {
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+    if (absX < 10 && absY < 10) return null;
+    if (absX > absY) return dx > 0 ? "right" : "left";
+    return dy > 0 ? "down" : "up";
+  }
+
+  function handleStart(e) {
     const touch = e.touches ? e.touches[0] : e;
     startX = touch.clientX;
     startY = touch.clientY;
+    currentX = startX;
+    currentY = startY;
+    dragging = true;
+    card.style.transition = "none";
   }
 
-  function onEnd(e) {
-    if (!isTouch) return;
-    isTouch = false;
+  function handleMove(e) {
+    if (!dragging) return;
+    const touch = e.touches ? e.touches[0] : e;
+    currentX = touch.clientX;
+    currentY = touch.clientY;
 
-    const touch = e.changedTouches ? e.changedTouches[0] : e;
-    const dx = touch.clientX - startX;
-    const dy = touch.clientY - startY;
+    const dx = currentX - startX;
+    const dy = currentY - startY;
+
+    const rotate = dx * 0.04; // лёгкий наклон
+    card.style.transform = `translate(${dx}px, ${dy}px) rotate(${rotate}deg)`;
+
+    const dir = getDirection(dx, dy);
+    highlightDirection(dir);
+  }
+
+  function handleEnd(e) {
+    if (!dragging) return;
+    dragging = false;
+    card.style.transition = "";
+
+    const dx = currentX - startX;
+    const dy = currentY - startY;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
-    const threshold = 40; // минимальный свайп
+    const dir = getDirection(dx, dy);
+    highlightDirection(null);
 
-    if (dist < threshold) {
-      // слишком короткий свайп
-      newCard.classList.add("shake");
-      setTimeout(() => newCard.classList.remove("shake"), 200);
+    const threshold = 80;
+
+    if (!dir || dist < threshold) {
+      // недотянули — возвращаем карточку назад
+      resetCard();
+      card.classList.add("snap-back");
+      setTimeout(() => card.classList.remove("snap-back"), 180);
       return;
     }
 
-    const absX = Math.abs(dx);
-    const absY = Math.abs(dy);
-    let direction = null;
-
-    if (absX > absY) {
-      direction = dx > 0 ? "right" : "left";
-    } else {
-      direction = dy > 0 ? "down" : "up";
-    }
-
     const option =
-      direction === "left"
+      dir === "left"
         ? directionsMap.left
-        : direction === "right"
+        : dir === "right"
         ? directionsMap.right
-        : direction === "up"
+        : dir === "up"
         ? directionsMap.up
         : directionsMap.down;
 
     if (!option) {
-      newCard.classList.add("shake");
-      setTimeout(() => newCard.classList.remove("shake"), 200);
+      resetCard();
+      card.classList.add("snap-back");
+      setTimeout(() => card.classList.remove("snap-back"), 180);
       return;
     }
 
-    // небольшая анимация «вылета» карточки
-    newCard.classList.add(`fly-${direction}`);
+    // улетает в выбранную сторону
+    card.classList.add(`fly-${dir}`);
     setTimeout(() => {
+      resetCard();
       onChosen(option);
-    }, 180);
+    }, 200);
   }
 
-  newCard.addEventListener("touchstart", onStart, { passive: true });
-  newCard.addEventListener("touchend", onEnd);
-  // Для десктопа мышью
-  newCard.addEventListener("mousedown", onStart);
-  newCard.addEventListener("mouseup", onEnd);
+  // навешиваем свежие обработчики (перезаписываем старые)
+  card.onmousedown = handleStart;
+  card.onmousemove = handleMove;
+  card.onmouseup = handleEnd;
+  card.onmouseleave = handleEnd;
+
+  card.ontouchstart = handleStart;
+  card.ontouchmove = handleMove;
+  card.ontouchend = handleEnd;
 }
 
 loadTest();
