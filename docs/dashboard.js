@@ -17,11 +17,11 @@ try {
     }
 
     // Блокируем скролл (чтобы не смахнуть мини-апп)
-    document.addEventListener(
-      "touchmove",
-      (e) => e.preventDefault(),
-      { passive: false }
-    );
+    ///document.addEventListener(
+    ///  "touchmove",
+    ///  (e) => e.preventDefault(),
+    ///  { passive: false }
+    ///);
 
     // Блокируем кнопку "назад"
     window.history.pushState(null, "", window.location.href);
