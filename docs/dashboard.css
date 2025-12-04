@@ -158,10 +158,14 @@ body {
 
 /* mobile */
 
-@media (max-width: 400px) {
+@media (max-width: 420px) {
   .page {
-    padding: 20px 12px 28px;
+    padding-top: calc(100px + env(safe-area-inset-top, 0px)); /* как в quiz */
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-bottom: 28px;
   }
+
   .test-card {
     width: 140px;
     height: 140px;
