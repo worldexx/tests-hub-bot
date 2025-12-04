@@ -37,7 +37,6 @@ try {
   console.warn("Telegram WebApp init error (dashboard)", e);
 }
 
-
 // подставляем ник из Telegram, если есть
 (function setUserInfo() {
   const initData = tg?.initDataUnsafe;
@@ -53,13 +52,21 @@ try {
   }
 })();
 
+// ---------- РАБОТА С ТЕСТАМИ ----------
+
+let testsData = []; // глобальный массив с тестами
+
 // грузим список тестов
 async function loadTests() {
   try {
     const resp = await fetch("tests/index.json");
     if (!resp.ok) throw new Error("fetch failed");
     const tests = await resp.json();
-    renderTests(tests);
+
+    // можно фильтровать выключенные тесты: enabled:false
+    testsData = tests.filter((t) => t.enabled !== false);
+
+    renderTests();
   } catch (e) {
     console.error(e);
     document.getElementById("testsGrid").innerHTML =
@@ -67,14 +74,17 @@ async function loadTests() {
   }
 }
 
-function renderTests(tests) {
+function renderTests() {
   const grid = document.getElementById("testsGrid");
   grid.innerHTML = "";
 
-  tests.forEach((t) => {
+  // 1) карточка-перемешка
+  grid.appendChild(createShuffleCard());
+
+  // 2) обычные тесты
+  testsData.forEach((t) => {
     const card = document.createElement("div");
     card.className = "test-card";
-
     card.onclick = () => openTest(t.id);
 
     card.innerHTML = `
@@ -86,10 +96,41 @@ function renderTests(tests) {
         <div class="test-title">${t.title}</div>
         <div class="test-tagline">${t.tagline || ""}</div>
       </div>
-      
     `;
     grid.appendChild(card);
   });
+}
+
+// карточка "перемешать"
+function createShuffleCard() {
+  const card = document.createElement("div");
+  card.className = "test-card shuffle-card";
+
+  card.innerHTML = `
+    <div>
+      <div class="test-header">
+        <div class="test-emoji">🔀</div>
+        <div class="test-pill">mix</div>
+      </div>
+      <div class="test-title">Перемешать тесты</div>
+      <div class="test-tagline">Показать в случайном порядке</div>
+    </div>
+  `;
+
+  card.onclick = () => {
+    testsData = shuffleArray(testsData);
+    renderTests();
+  };
+
+  return card;
+}
+
+// аккуратное перемешивание массива
+function shuffleArray(arr) {
+  return arr
+    .map((item) => ({ item, sort: Math.random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ item }) => item);
 }
 
 function openTest(testId) {

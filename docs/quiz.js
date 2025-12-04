@@ -401,12 +401,23 @@ function setupSwipe(card, directionsMap, onChosen) {
   }
 
   function highlightDirection(dir) {
-    Object.entries(dirEls).forEach(([name, el]) => {
-      if (!el) return;
-      if (name === dir) el.classList.add("active");
-      else el.classList.remove("active");
-    });
-  }
+  Object.entries(dirEls).forEach(([name, el]) => {
+    if (!el) return;
+
+    if (name === dir) {
+      el.classList.add("active");
+      el.classList.remove("dimmed");
+    } else {
+      if (dir) {
+        el.classList.remove("active");
+        el.classList.add("dimmed");
+      } else {
+        el.classList.remove("active");
+        el.classList.remove("dimmed");
+      }
+    }
+  });
+}
 
   function getDirection(dx, dy) {
     const absX = Math.abs(dx);
