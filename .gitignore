@@ -1,7 +1,7 @@
 # виртуальное окружение
 venv/
 # конфиги
-.env
+.env, .rar, .zip
 # кэш python
 __pycache__/
 *.pyc

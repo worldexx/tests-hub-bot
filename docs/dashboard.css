@@ -14,8 +14,11 @@ body {
   min-height: 100vh;
   max-width: 480px;
   margin: 0 auto;
-  padding: 24px 16px 32px;
+
+  /* такой же отступ сверху как у quiz */
+  padding: calc(180px + env(safe-area-inset-top, 0px)) 16px 32px;
 }
+
 
 /* HEADER */
 .simple-header {

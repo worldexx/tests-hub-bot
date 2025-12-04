@@ -61,6 +61,17 @@ async function loadTest() {
   }
 }
 
+// ---- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 // ---- РЕНДЕР ТЕСТА ----
 
 function renderQuiz(quiz) {
@@ -106,8 +117,45 @@ function renderQuiz(quiz) {
     location.href = base;
   };
 
+  // ---------- ОПРЕДЕЛЕНИЕ РЕЖИМОВ ТЕСТА ----------
+
+  const firstQuestion = quiz.questions?.[0];
+  const firstOption = firstQuestion?.options?.[0];
+
+  const firstOptionScore = firstOption?.score;
+  const hasCorrectId = !!firstQuestion?.correct_option_id;
+
+  const isPersonaMode =
+    typeof firstOptionScore === "object" && firstOptionScore !== null;
+
+  const isSimpleScoreMode =
+    !isPersonaMode && typeof firstOptionScore === "number";
+
+  const isIqMode =
+    !isPersonaMode &&
+    (!isSimpleScoreMode &&
+      (quiz.type === "iq" ||
+        quiz.rules?.mode === "formula" ||
+        hasCorrectId));
+
+  // рандомизация вариантов (по умолчанию true, кроме явного shuffleOptions: false)
+  const shuffleOptions = quiz.shuffleOptions !== false;
+
   let index = 0;
-  let score = 0;
+
+  // Старый режим: один общий балл
+  let totalScore = 0;
+
+  // Режим персонажей
+  const personaScores = {};
+  if (isPersonaMode && Array.isArray(quiz.characters)) {
+    quiz.characters.forEach((id) => {
+      personaScores[id] = 0;
+    });
+  }
+
+  // IQ / formula режим
+  let correctCount = 0;
 
   function updateProgress() {
     const total = quiz.questions.length;
@@ -132,6 +180,7 @@ function renderQuiz(quiz) {
       dirs.right = options[1];
       dirs.down = options[2];
     } else {
+      // >= 4 — берём первые 4
       dirs.left = options[0];
       dirs.right = options[1];
       dirs.up = options[2];
@@ -155,7 +204,11 @@ function renderQuiz(quiz) {
 
     qTextEl.textContent = question.text;
 
-    const dirs = mapDirections(question.options);
+    const optionsForThisRun = shuffleOptions
+      ? shuffleArray(question.options)
+      : question.options;
+
+    const dirs = mapDirections(optionsForThisRun);
 
     dirUpEl.textContent = dirs.up ? dirs.up.text : "";
     dirLeftEl.textContent = dirs.left ? dirs.left.text : "";
@@ -170,22 +223,117 @@ function renderQuiz(quiz) {
 
     const card = document.getElementById("questionCard");
     setupSwipe(card, dirs, (chosen) => {
-      score += Number(chosen.score || 0);
+      // ----- режимы подсчёта -----
+
+      if (isPersonaMode) {
+        const scoreObj = chosen.score || {};
+        for (const key in scoreObj) {
+          if (!Object.prototype.hasOwnProperty.call(scoreObj, key)) continue;
+          if (personaScores[key] == null) personaScores[key] = 0;
+          personaScores[key] += Number(scoreObj[key] || 0);
+        }
+      } else if (isIqMode) {
+        if (question.correct_option_id && chosen.id === question.correct_option_id) {
+          correctCount += 1;
+        }
+      } else if (isSimpleScoreMode) {
+        totalScore += Number(chosen.score || 0);
+      }
+
       index += 1;
       renderQuestion();
     });
   }
 
-  function renderResult() {
-    const totalMax = quiz.questions.length * 3;
-    const result =
-      quiz.results.find(
-        (r) => score >= r.range[0] && score <= r.range[1]
-      ) || {
-        title: "Неопознанный вайб",
-        description: "Ты вне шкалы, отдельная экспериментальная сущность."
-      };
+  function runFormula(expr, context, fallback) {
+    if (!expr) return fallback;
+    try {
+      const argNames = Object.keys(context);
+      const argValues = Object.values(context);
+      // expr типа "correctCount" или "Math.round(correctCount / questionsCount * 100)"
+      // eslint-disable-next-line no-new-func
+      const fn = new Function(...argNames, `return ${expr};`);
+      const val = fn(...argValues);
+      return Number.isFinite(val) ? val : fallback;
+    } catch (e) {
+      console.warn("Formula eval error", e);
+      return fallback;
+    }
+  }
 
+  function renderResult() {
+    // ---------- ВЫБОР РЕЗУЛЬТАТА ----------
+    let result;
+    let scoreInfoText = "";
+
+    if (isPersonaMode) {
+      // Ищем персонажа с максимальным количеством очков
+      const entries = Object.entries(personaScores);
+      const total = entries.reduce((sum, [, value]) => sum + value, 0) || 1;
+      const sorted = entries.sort((a, b) => b[1] - a[1]);
+
+      const [bestId] = sorted[0];
+      result = quiz.results.find((r) => r.id === bestId) || quiz.results[0];
+
+      const mixTop = sorted.slice(0, 3).map(([id, value]) => {
+        const pct = Math.round((value / total) * 100);
+        const res = quiz.results.find((r) => r.id === id);
+        return {
+          title: res ? res.title : id,
+          pct
+        };
+      });
+
+      scoreInfoText = mixTop.map((m) => `${m.title}: ${m.pct}%`).join(" · ");
+    } else if (isIqMode) {
+      const questionsCount = quiz.questions.length;
+      let score = correctCount;
+      let maxScore = questionsCount;
+
+      if (quiz.rules && quiz.rules.mode === "formula") {
+        const ctx = { correctCount, questionsCount };
+        score = runFormula(quiz.rules.scoreFormula || "correctCount", ctx, score);
+        maxScore = runFormula(
+          quiz.rules.maxScoreFormula || "questionsCount",
+          ctx,
+          maxScore
+        );
+      }
+
+      scoreInfoText = `Очки: ${score} / ${maxScore}`;
+
+      result =
+        quiz.results.find(
+          (r) =>
+            Array.isArray(r.range) &&
+            score >= r.range[0] &&
+            score <= r.range[1]
+        ) || quiz.results[quiz.results.length - 1];
+    } else {
+      // Старый режим по диапазонам (score на вариантах)
+
+      const totalMax = quiz.questions.reduce((sum, q) => {
+        if (!Array.isArray(q.options) || q.options.length === 0) return sum;
+        const maxInQuestion = Math.max(
+          ...q.options.map((o) => Number(o.score || 0))
+        );
+        return sum + (Number.isFinite(maxInQuestion) ? maxInQuestion : 0);
+      }, 0);
+
+      scoreInfoText = `Очки: ${totalScore} / ${totalMax}`;
+
+      result =
+        quiz.results.find(
+          (r) =>
+            Array.isArray(r.range) &&
+            totalScore >= r.range[0] &&
+            totalScore <= r.range[1]
+        ) || quiz.results[quiz.results.length - 1];
+    }
+
+    // ---------- РЕНДЕР РЕЗУЛЬТАТА ----------
+
+    const root = document.getElementById("quiz-root");
     root.innerHTML = `
       <div class="quiz-shell result-shell">
         <header class="quiz-header">
@@ -199,7 +347,7 @@ function renderQuiz(quiz) {
           <div class="result-card">
             <div class="result-label">твой результат</div>
             <div class="result-title">${result.title}</div>
-            <div class="result-score">Очки: ${score} / ${totalMax}</div>
+            <div class="result-score">${scoreInfoText}</div>
             <div class="result-desc">${result.description}</div>
 
             <div class="result-actions">
@@ -217,9 +365,11 @@ function renderQuiz(quiz) {
           const base = location.pathname.replace(/quiz\.html?$/, "");
           location.href = base;
         };
+
     document.getElementById("retryBtn").onclick = () => renderQuiz(quiz);
   }
 
+  // стартуем с первого вопроса
   renderQuestion();
 }
 
@@ -346,5 +496,6 @@ function setupSwipe(card, directionsMap, onChosen) {
   card.ontouchend = handleEnd;
 }
 
-// старт
+// ---- СТАРТ ПРИ ЗАГРУЗКЕ ----
+
 loadTest();
