@@ -1,10 +1,11 @@
 # виртуальное окружение
 venv/
-# конфиги
-.env, .rar, .zip
+
+# конфиги и архивы
+.env
+*.rar
+*.zip
+
 # кэш python
 __pycache__/
 *.pyc
-.env
-.rar
-.zip
