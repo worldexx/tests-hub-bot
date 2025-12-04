@@ -86,9 +86,7 @@ function renderTests(tests) {
         <div class="test-title">${t.title}</div>
         <div class="test-tagline">${t.tagline || ""}</div>
       </div>
-      <div class="test-actions">
-        <button class="icon-btn" title="пройти">↗</button>
-      </div>
+      
     `;
     grid.appendChild(card);
   });
