@@ -37,20 +37,20 @@ try {
   console.warn("Telegram WebApp init error (dashboard)", e);
 }
 
-// подставляем ник из Telegram, если есть
-(function setUserInfo() {
-  const initData = tg?.initDataUnsafe;
-  const usernameEl = document.getElementById("username");
-  const accountEl = document.getElementById("accountType");
+// // подставляем ник из Telegram, если есть
+// (function setUserInfo() {
+//   const initData = tg?.initDataUnsafe;
+//   const usernameEl = document.getElementById("username");
+//   const accountEl = document.getElementById("accountType");
 
-  if (initData?.user) {
-    const u = initData.user;
-    const name =
-      u.username || `${u.first_name || ""} ${u.last_name || ""}`.trim();
-    if (name) usernameEl.textContent = name;
-    accountEl.textContent = "basic account";
-  }
-})();
+//   if (initData?.user) {
+//     const u = initData.user;
+//     const name =
+//       u.username || `${u.first_name || ""} ${u.last_name || ""}`.trim();
+//     if (name) usernameEl.textContent = name;
+//     accountEl.textContent = "basic account";
+//   }
+// })();
 
 // ---------- РАБОТА С ТЕСТАМИ ----------
 
